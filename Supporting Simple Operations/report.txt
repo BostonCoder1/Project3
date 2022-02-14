@@ -1,0 +1,281 @@
+1. Enter the number of hours it took you to complete the project between
+   the <<< and >>> signs below (eg, <<<10>>>).
+
+   <<< 30 >>>
+
+2. Enter the difficulty level (1: very easy; 5: very difficult) of the project
+   between the <<< and >>> signs below (eg, <<<3>>>).
+
+   <<< 4>>>
+
+3. Did you receive help from anyone? List their names, status (classmate,
+   CS451/651 grad, TA, other), and the nature of help received.
+
+   Name               Status       Help Received
+   ----               ------       -------------
+
+   ...                ...          ...
+
+4. Provide a short description of how you approached each problem, issues you
+   encountered, and how you resolved those issues.
+
+   Problem 1 (Using CLEmitter)
+      Approach:
+       We need to pass the several phase to convert the source code to target code.
+       At first, I did logical analysis in which I identified the identifiers, operators and constant
+       values. We do the syntax analysis whether it has right semicolon, and other
+       valuable identifiers. If there is no error we will generate the parse tree with those
+       tokens. After generating the parse tree we will analyze the variable, and possible
+       type conversion. If there is no errors we verified the parse tree and generate
+       the intermediate code. We optimize the code and generate the assembly/bytecode
+       as a target code. I had followed these process in the code generation process.
+
+       - I created the object of the CLEmitter to store the modifiers, identifiers,
+         to create constructor and to invoke the method.
+         I Created an ArrayList instance to store modifiers, and added all modifiers.
+         In modifiers, I added keyword, like public, static, and [Ljava/lang/String;)V in which identifiers
+         belong to and so on.
+       - for  int n = Integer.parseInt(args[0]);
+           I loaded a reference onto the stack from local variable 0 by using ALOAD_0.
+           I loaded the int CONSTANT value  onto the stack by using ICONST_0.
+           I loaded onto the stack a reference from an array by using AALOAD.
+           I added memborAccessInstruction and stored int value into a variable in memory
+          by using ISTORE_1.
+       -for // boolean result = isPrime(n);
+           I loaded an int value from local variable 1.
+           I stored int value into variable 2 in memory by using ISTORE_2.
+           I loadED an int value into the stack from local variable 2 by using ILOAD_2.
+       -if (result == 0) then branch it  to the  "NoPrime" by using IFEQ.
+
+       -for *if given number is prime: System.out.println(n + " is a prime number");
+            Get the System.out on stack
+            I Created an instance (say sb) of StringBuffer on stack for string concatenations
+            and duplicate it.
+            I duplicated the value on top of the stack.
+            I appended n, load n ; load an int value from local variable 1 by using ILOAD_1.
+       - for sb.append(" is a prime number").
+           I did  e.addLDCInstruction(" is a prime number").
+       - for The is no prime case: System.out.println(n + " is not a prime number");
+           I added label "There is no prime number".
+           I got  the System.out on stack as like as previous way.
+       - for if (n >= 2)
+           I got n onto the stack by doing ILOAD_0.
+           I got 2 onto the stack by doing ICONST_2.
+           I did  e.addBranchInstruction(IF_ICMPGE, "Loop") for branching to loop.
+       -for Base case: return 0; - No prime
+           I loaded value to the stack by using ICONST_0.
+           I returned an integer from a method by doing IRETURN instruction.
+       -for loop
+           I got the i onto stack by doing ILOAD_1.
+           I got the n / i onto stack by doing ILOAD_0 and ILOAD_1.
+           I divided i/n by giving IDIV instruction.
+           If i<n/2, branched to instruction at branchoffset by doing e.addBranchInstruction(IF_ICMPLE, "If").
+           I loaded the int value onto the stack by using ICONST_1 instruction.
+
+           I returned integer from a method for the prime number by using IRETURN.
+           I wrote to the file system.
+
+
+
+
+      Issues and resolution:
+         At the first time I had troubled understanding on how stack and memory works. I mistakenly
+         tried to store in wrong location of memory, and even in stack which gave me errors.
+         I tried to store the value from stack to memory which was not assigned. But after throw reading
+         of materials and book, I understand the stack and memory.
+         Bytecode instructions were confusing at the first glance. But once I understand it, I was good on
+         working with this as well.
+
+   Problem 2 (Arithmetic Operations)
+      Approach:
+       In this operation, I modified and updated the JBinaryExpression, JUnaryExpression, TokenInfo and Scanner.
+       -"/" operation:
+          Scanner:
+              In scanner I scanned the character by character, if i found the white space character or new line,
+              I checked whether given token is defined or not and return the token info and line number.
+         TokenInfo:
+              In tokenInfo I added DIV("/") in operators list.
+         Parser:
+              if (have(DIV)) lhs = new JDivideOp(line, lhs, unaryExpression());
+          BinaryExpression:
+              In JExpression analyze(Context context) method, I initialized lhs and rhs.
+              I checked lhs.type().mustMatchExpected(line(), Type.INT) for both operands.
+              I checked the type and returned the value.
+              In codegen(CLEmitter output) method I did lhs.codegen(output); and rhs.codegen(output);
+              output.addNoArgInstruction(IDIV);
+
+       -JRemainderOp "%" operation
+
+        Scanner:
+              In scanner I scanned the character by character, if I found the white space character or new line,
+              I checked whether given token is defined or not and return the token info and line number.
+       TokenInfo:
+              In tokenInfo I added ("%") in operators list.
+       Parser:
+              if (have(%)) lhs = new JReminderOp(line, lhs, unaryExpression());
+       JBinaryExpression:
+              In JExpression analyze(Context context) method, I initialized lhs and rhs.
+              I checked lhs.type().mustMatchExpected(line(), Type.INT) for both operands.
+              I checked the type and returned the value.
+              In codegen(CLEmitter output) method I did lhs.codegen(output); and rhs.codegen(output);
+              output.addNoArgInstruction(IREM);
+
+       -JUnaryPlusOp "+"
+
+         Scanner:
+                 In scanner I scanned the character by character, if I found the white space character or new line,
+                 I checked whether given token is defined or not and return the token info and line number.
+          TokenInfo:
+                 In tokenInfo I added ("+") in operators list.
+          Parser:
+                 if (have(+)) lhs = new JUnaryPlusOp(line, lhs, unaryExpression());
+          JUnaryExpression:
+                 In JExpression analyze(Context context) method, I initialized lhs and rhs.
+                 I checked lhs.type().mustMatchExpected(line(), Type.INT) for a operand.
+                 I checked the type and returned the value.
+                 In codegen(CLEmitter output) method I did lhs.codegen(output); and rhs.codegen(output);
+                 output.addNoArgInstruction(IREM);
+
+
+
+      Issues and resolution:
+       In JUnary operation, I mistakenly checked the lhs.type().mustMatchExpected(line(), Type.INT) for a operand
+       for two operands whereas unary operation has only one operand. I fixed it by doing single checked.
+
+   Problem 3 (Bitwise Operations)
+        Approach:
+               -JAndOp "&"
+                Scanner:
+                       In scanner I scanned the character by character, if I found the white space character or new line,
+                       I checked whether given token is defined or not and return the token info and line number.
+                TokenInfo:
+                       In tokenInfo I added ("&") in operators list.
+                Parser:
+                       if (have(JXOrOp)) lhs = new JReminderOp(line, lhs, unaryExpression());
+                JBinaryExpression:
+                       In JExpression analyze(Context context) method, I initialized lhs and rhs.
+                       I checked lhs.type().mustMatchExpected(line(), Type.INT) for both operands.
+                       I checked the type and returned the value.
+                       In codegen(CLEmitter output) method
+                       I did lhs.codegen(output); and rhs.codegen(output); output.addNoArgInstruction(JAndOp);
+
+
+             -JXOrOp "^"
+             Scanner:
+                    In scanner I scanned the character by character, if I found the white space character or new line,
+                    I checked whether given token is defined or not and return the token info and line number.
+             TokenInfo:
+                    In tokenInfo I added ("^") in operators list.
+             Parser:
+                    if (have(JXOrOp)) lhs = new JReminderOp(line, lhs, unaryExpression());
+             JBinaryExpression:
+                    In JExpression analyze(Context context) method, I initialized lhs and rhs.
+                    I checked lhs.type().mustMatchExpected(line(), Type.INT) for both operands.
+                    I checked the type and returned the value.
+                    In codegen(CLEmitter output) method
+                    I did lhs.codegen(output); and rhs.codegen(output); output.addNoArgInstruction(IXOR);
+
+           -JOrOp "|"
+           Scanner:
+                 In scanner I scanned the character by character, if I found the white space character or new line,
+                 I checked whether given token is defined or not and return the token info and line number.
+          TokenInfo:
+                 In tokenInfo I added ("|") in operators list.
+          Parser:
+                 if (have(JOrOp)) lhs = new JReminderOp(line, lhs, unaryExpression());
+          JBinaryExpression:
+                 In JExpression analyze(Context context) method, I initialized lhs and rhs.
+                 I checked lhs.type().mustMatchExpected(line(), Type.INT) for both operands.
+                 I checked the type and returned the value.
+                 In codegen(CLEmitter output) method
+                 I did lhs.codegen(output); and rhs.codegen(output);
+                 output.addNoArgInstruction(IOR);
+
+
+              JComplementOp "~":
+              Scanner:
+                     In scanner I scanned the character by character, if I found the white space character or new line,
+                     I checked whether given token is defined or not and return the token info and line number.
+              TokenInfo:
+                     In tokenInfo I added ("~") in operators list.
+              Parser:
+                     if (have(NOT)) lhs = new JComplementOp(line, unaryExpression());
+              JUnaryExpression:
+                     In JExpression analyze(Context context) method, I initialized lhs and rhs.
+                     I checked lhs.type().mustMatchExpected(line(), Type.INT) for a operand.
+                     I checked the type and returned the value.
+                     In codegen(CLEmitter output) method I did lhs.codegen(output); and rhs.codegen(output);
+                     I loaded the int value −1 onto the stack by doing output.addNoArgInstruction(ICONST_M1);
+                     I did int xor output.addNoArgInstruction(IXOR);
+                     I returned the valued by doing output.addNoArgInstruction(IREM);
+
+
+
+      Issues and resolution:
+       In ~ I got errors, since I forgot to load the negative value in the stack. I fixed it by loading negative
+       value in the stack in calculation process.
+
+   Problem 4 (Shift Operations)
+       Approach:
+            JALeftShiftOp "<<"
+             Scanner:
+                    In scanner I scanned the character by character, if I found the white space character or new line,
+                    I checked whether given token is defined or not and return the token info and line number.
+             TokenInfo:
+                    In tokenInfo I added ("<<") in operators list.
+             Parser:
+                   lhs = new JALeftShiftOp(line, lhs, additiveExpression());
+             JBinaryExpression:
+                    In JExpression analyze(Context context) method, I initialized lhs and rhs.
+                    I checked lhs.type().mustMatchExpected(line(), Type.INT) for both operands.
+                    I checked the type and returned the value.
+                    In codegen(CLEmitter output) method
+                    I did lhs.codegen(output); and rhs.codegen(output);
+                    output.addNoArgInstruction(ISHL);
+
+
+            JARightShiftOp ">>"
+            Scanner:
+                    In scanner I scanned the character by character, if I found the white space character or new line,
+                    I checked whether given token is defined or not and return the token info and line number.
+             TokenInfo:
+                    In tokenInfo I added (">>") in operators list.
+             Parser:
+                    lhs = new JARightShiftOp(line, lhs, additiveExpression());
+             JBinaryExpression:
+                    In JExpression analyze(Context context) method, I initialized lhs and rhs.
+                    I checked lhs.type().mustMatchExpected(line(), Type.INT) for both operands.
+                    I checked the type and returned the value.
+                    In codegen(CLEmitter output) method
+                    I did lhs.codegen(output); and rhs.codegen(output);
+                    output.addNoArgInstruction(ISHR);
+
+             JLRightShiftOp ">>>"
+             Scanner:
+                    In scanner I scanned the character by character, if I found the white space character or new line,
+                    I checked whether given token is defined or not and return the token info and line number.
+             TokenInfo:
+                    In tokenInfo I added (">>>") in operators list.
+             Parser:
+                     lhs = new JLRightShiftOp(line, lhs, additiveExpression());
+             JBinaryExpression:
+                    In JExpression analyze(Context context) method, I initialized lhs and rhs.
+                    I checked lhs.type().mustMatchExpected(line(), Type.INT) for both operands.
+                    I checked the type and returned the value.
+                    In codegen(CLEmitter output) method
+                    I did lhs.codegen(output); and rhs.codegen(output);
+                    output.addNoArgInstruction(IUSHR);
+
+            Issues and resolution:
+               I made a mistakes by passing the argument as unaryExpression in lh, and rh in Parser. I corrected it by
+               passing the argument as lhs = new JLRightShiftOp(line, lhs, additiveExpression());
+               and rhs = new JLRightShiftOp(line, lhs, additiveExpression());
+
+5. List any other comments here. Feel free to provide any feedback on how
+   much you learned from doing the assignment, and whether you enjoyed
+   doing it.
+
+   I learned about the java compiler, j-- and bytecode instruction. I gain meaningful knowledge on stack, memory, and
+   bytecode instruction. Tokens, semantic analysis, intermediate code generation and target code generation process was
+   really awesome. It is important for programmer to learn about what's happening behind the scene rather than just
+   writing the code.
